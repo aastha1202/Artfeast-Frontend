@@ -5,6 +5,7 @@ import {
   ViroARScene,
   ViroARSceneNavigator,
   ViroImage,
+  ViroText,
 } from '@viro-community/react-viro';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { RootStackParamList } from '../types/RouteTypes';
@@ -18,6 +19,17 @@ const ImageTexture = (postUrl: string) => {
   return (
     /** ViroARScene will open up AR enabled camera in your scene */
     <ViroARScene onTrackingUpdated={onInitialized}>
+     <ViroText
+        text="Please point your camera to the wall"
+        position={[0, -0.5, -1]}
+        scale={[0.1, 0.1, 0.1]}
+        rotation={[0, 0, 0]}
+        style={{ fontFamily: 'Arial', fontSize: 30, color: 'black', textAlign: 'center' }}
+        textLineBreakMode= 'CharWrap'
+        textClipMode='ClipToBounds'
+        maxLines={10}
+        
+      />
     <ViroImage
         position={[0, 0, -1]}
         scale={[0.3, 0.3, 0.1]}

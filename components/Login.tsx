@@ -6,35 +6,58 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  Image,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '@env';
+import { setAuthorizationHeader } from '../utils/api';
+import {InputField} from './InputField';
+import Toast from 'react-native-toast-message';
 
 export default function Signin() {
-  const [email, setEmail] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [disable,setDisable] = useState(true)
   const navigation = useNavigation();
   const user = {
-    userName: email,
+    userName: userName,
     password: password,
   };
   const storeToken = async (token: string) => {
     try {
       console.log('afterlogin', token);
-      await AsyncStorage.setItem('token', token);
-      const savedtoken = await AsyncStorage.getItem('token');
-      console.log('uid', savedtoken);
+      const tokens = await AsyncStorage.getItem('token', ()=>{
+        console.log(tokens,'afterlogin if there is any token')
+      })
+      await AsyncStorage.setItem('token', token, async ()=> {
+        const savedtoken = await AsyncStorage.getItem('token');
+        console.log('uid', savedtoken);
+        if(savedtoken){
+          setAuthorizationHeader(savedtoken)
+        }
+      });
     } catch (error) {
       console.log(error);
     }
   };
+  useEffect(()=>{
+    if(userName && password)
+    setDisable(false)
+    else
+    setDisable(true)
+  },[userName,password])
 
   function handleLogin() {
+    if(!userName || !password){
+      Toast.show({
+        type: 'error',
+        text1: 'Please enter all the fields',
+        topOffset: 0,
+      });
+      return
+    }
     fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -45,9 +68,18 @@ export default function Signin() {
       .then(response => response.json())
       .then(data => {
         if (data) {
-          console.log('data', data);
-          storeToken(data.token);
-          navigation.navigate('ProductPage');
+          if(data.message==='Login successful'){
+            console.log('data', data.token);
+            storeToken(data.token);
+            navigation.navigate('ProductPage');
+          }
+          else{
+            Toast.show({
+              type: 'error',
+              text1: data.message,
+              topOffset: 0,
+            });
+          }
         } else {
           console.log('signin error');
         }
@@ -57,104 +89,82 @@ export default function Signin() {
       });
   }
   return (
+    <View style={styles.containerStyle}>
+    <Toast/>
     <ScrollView>
-      <Image
-        style={styles.loginPageImage}
-        source={require('./Assets/Shape.png')}
-      />
-      <View style={styles.headerContainer}>
-        <Text style={[styles.loginPageHeader, styles.headerFont]}>
-          Welcomes Back!
-        </Text>
-        <Text style={[styles.loginPageHeader, styles.subtextFont]}>
-          Enter Username and Password
-        </Text>
-      </View>
       <View style={styles.flexBox}>
-        <TextInput
-          style={styles.inputStyles}
-          placeholder="Enter Email"
-          placeholderTextColor="rgba(151, 151, 151, 1)"
-          onChangeText={text => setEmail(text)}
+        <InputField
+          placeholder="Enter UserName"
+          onChangeText={text => setUserName(text.trim())}
+          value={userName}
+          label='UserName'
         />
-        <TextInput
-          style={styles.inputStyles}
+        <InputField
           placeholder="Password"
-          placeholderTextColor="rgba(151, 151, 151, 1)"
           secureTextEntry={true}
           onChangeText={text => setPassword(text)}
+          value={password}
+          label='Password'
         />
-        <TouchableOpacity style={styles.buttonStyles} onPress={handleLogin}>
-          <Text style={styles.buttonTextStyle}>
-            Login
+      </View>
+    </ScrollView>
+    <View style={styles.bottomContainer}>
+         <View style={{display:'flex', flexDirection:'row',alignItems:'center',justifyContent:'center'}}>
+         <Text style={{color: 'rgba(166, 166, 170, 1)',}}>
+         Are you new at Artfeast?{' '}
           </Text>
-        </TouchableOpacity>
-
-        <Text style={{color: 'rgba(166, 166, 170, 1)'}}>
-          Are you new at Artfeast?{' '}
-          <TouchableOpacity onPress={() => navigation.navigate('Signin')}>
+          <TouchableOpacity style={{}} onPress={() => navigation.navigate('Signin')}>
             <Text
-              style={{ color: 'rgba(158, 20, 57, 1)',textDecorationLine: 'underline'}}>
+              style={{
+                color: 'black',
+                textDecorationLine: 'underline',
+              }}>
               Sign up
             </Text>
           </TouchableOpacity>
-        </Text>
-      </View>
-    </ScrollView>
+        </View>
+        <TouchableOpacity
+          style={[styles.buttonStyles, {backgroundColor: disable ?  '#F5F7FA': 'black'}]}
+          onPress={handleLogin}>
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 18,
+              color: `${disable ? "#717171": 'white'}`,
+            }}>
+            Login
+          </Text>
+        </TouchableOpacity>
+</View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  loginPageImage: {
-    resizeMode: 'cover',
-    width: '100%',
-  },
-  headerFont: {
-    fontSize: 30,
-    color: 'rgba(255, 255, 255, 1)',
-  },
-  subtextFont: {
-    fontSize: 20,
-    color: ' rgba(255, 255, 255, 0.8)',
-  },
-  header: {
-    fontSize: 32,
-  },
-  headerContainer: {
-    position: 'absolute',
-    right: 20,
-    top: 40,
-  },
-  loginPageHeader: {
-    textAlign: 'right',
+  containerStyle: {
+    backgroundColor: 'white',
+    flex: 1,
+    margin: 0,
+    padding: 40,
+
   },
   flexBox: {
     flex: 1,
     gap: 20,
-    paddingHorizontal: 40,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 30,
   },
-  inputStyles: {
-    borderColor: 'rgba(0, 0, 0, 1)',
-    color: 'rgba(151, 151, 151, 1)',
-    backgroundColor: 'rgba(229, 229, 229, 0.3)',
-    fontSize: 16,
-    height: 40,
-    width: '100%',
-    borderRadius: 8,
-    padding: 10,
-  },
   buttonStyles: {
-    backgroundColor: 'rgba(158, 20, 57, 1)',
-    borderRadius: 10,
+    backgroundColor: '#F5F7FA',
+    //  borderWidth:1,
+    borderRadius: 100,
     padding: 12,
     width: '100%',
-    color: 'rgba(0, 0, 0, 1)',
+    color: 'black',
   },
-  buttonTextStyle:{
-    textAlign: 'center',
-    fontSize: 16,
-    color: 'white',
-  }});
+  bottomContainer :{
+    gap: 20,
+    width:'100%',
+  }
+});

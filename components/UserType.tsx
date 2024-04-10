@@ -1,23 +1,45 @@
 /* eslint-disable prettier/prettier */
-import {Image, StyleSheet, Text, View, TouchableOpacity} from 'react-native';
-import {Picker} from '@react-native-picker/picker';
+import { StyleSheet, Text, View, TouchableOpacity} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import { RouteProp, useRoute} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import { RootStackParamList } from '../types/RouteTypes';
 import { API_URL } from '@env';
+import CheckBox from '@react-native-community/checkbox';
+import { ScrollView } from 'react-native-gesture-handler';
 
 export default function UserType() {
-  const [userType, setUserType] = useState('');
   const [userId, setuserId] = useState('');
+  // const [artist, setArtist] = useState(false);
+  // const [artEnth, setArtEnth] = useState(false)
+  const [userType, setUserType] = useState('');
+  const [disable, setDisable] = useState(true)
   const route = useRoute<RouteProp<RootStackParamList, 'UserType'>>();
   const navigation = useNavigation();
   useEffect(() => {
     setuserId(route.params?.userId);
   }, [route.params?.userId]);
-
+  useEffect(()=>{
+    if(userType){
+      setDisable(false)
+    }
+    else
+    setDisable(true)
+  },[userType,disable])
+  function handleCheckBoxChange(type: 'artist' | 'customer') {
+    setUserType(type);
+  }
   function updateUserType() {
     console.log('rmail', userId);
+    // if (artist){
+    //   userType='artist'
+    // }
+    // else if (artEnth){
+    //   userType='customer'
+    // }
+    if(!userType){
+      return
+    }
     fetch(`${API_URL}/auth/updateRole`, {
       method: 'PUT',
       headers: {
@@ -31,34 +53,32 @@ export default function UserType() {
       .then(response => response.json())
       .then(data => {
         console.log('Success:', data);
-        navigation.navigate('Signin');
+        navigation.navigate('Login');
       })
       .catch(error => {
         console.error('Error:', error);
       });
   }
   return (
-    <View >
-      <Image
-        source={require('./Assets/Union1.png')}
-        style={{width: '100%', position: 'absolute'}}
-      />
+    <View style={styles.containerStyle}>
+      <ScrollView contentContainerStyle={{gap:20,marginTop:60}}>
+      <View>
+      <Text  style={styles.headerFont}  >You wish to join ARTFEAST as an?</Text>
       <Text style={[ styles.subtextFont]}>
-        Elevate Art, Explore Passion with Artfeast.
+      Select the type of user you wish to be      
       </Text>
-      <View style={{marginVertical: 400}}>
-        <Picker
-          selectedValue={userType}
-          style={{
-            backgroundColor: 'rgba(247, 247, 247, 1)',
-            color: 'rgba(151, 151, 151, 1)',
-          }}
-          onValueChange={(itemValue) => setUserType(itemValue)}>
-          <Picker.Item label="Joining ArtFeast as...." value={null} />
-          <Picker.Item label="Artist" value="artist" />
-          <Picker.Item label="Art Enthusiasts" value="customer" />
-        </Picker>
-        <View
+      </View>
+      <View style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+      <CheckBox boxType='square' tintColors={{true:'black'}}  value={userType === 'artist'}  onChange={()=> handleCheckBoxChange('artist')} />
+      <Text style={{color:'black' , fontSize: 18}}>Artist</Text>
+      </View>
+      <View style={{display:'flex', flexDirection:'row', alignItems:'center'}}>
+      <CheckBox boxType='square' tintColors={{true:'black'}}  value={userType === 'customer'}  onChange={()=> handleCheckBoxChange('customer')} />
+      <Text style={{color:'black' , fontSize: 18}}>Art enthusiast</Text>
+      </View>
+        
+      </ScrollView>
+      <View
           style={{
             display: 'flex',
             flexDirection: 'row',
@@ -66,57 +86,46 @@ export default function UserType() {
             gap: 20,
             justifyContent: 'center',
           }}>
-          <TouchableOpacity style={[styles.buttonStyles, styles.cancelButton]}>
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 16,
-                color: 'rgba(151, 151, 151, 1)',
-              }}>
-              Cancel
-            </Text>
-          </TouchableOpacity>
           <TouchableOpacity
-            style={styles.buttonStyles}
+            style={[styles.buttonStyles,{backgroundColor: disable ?'#F5F7FA' :'black',}]}
+            disabled={disable}
             onPress={updateUserType}>
             <Text
               style={{
                 textAlign: 'center',
                 fontSize: 16,
-                color: 'white',
+                color: `${disable ? "#717171": 'white'}`,
               }}>
-              Confirm
+              Continue
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // container: {
-  //   flex: 1,
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  // },
-  buttonStyles: {
-    backgroundColor: 'rgba(158, 20, 57, 1)',
-    //  borderWidth:1,
-    borderRadius: 10,
-    padding: 12,
-    width: '45%',
-    color: 'rgba(0, 0, 0, 1)',
+  containerStyle: {
+    backgroundColor: 'white',
+    flex: 1,
+    margin: 0,
+    padding: 20,
   },
-  cancelButton: {
-    backgroundColor: 'rgba(247, 247, 247, 1)',
+  buttonStyles: {
+    borderRadius: 100,
+    padding: 12,
+    width: '100%',
+    color: 'black',
   },
   headerFont: {
-    fontSize: 30,
-    color: 'rgba(255, 255, 255, 1)',
+    fontSize: 22,
+    fontWeight:'600',
+    color: 'black',
+    textAlign:'center'
   },
   subtextFont: {
-    fontSize: 20,
-    color: ' rgba(255, 255, 255, 0.8)',
+    fontSize: 16,
+    color: '#89939E',
+    textAlign:'center',
   },
 });

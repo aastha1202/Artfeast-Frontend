@@ -2,25 +2,49 @@
 import {
   StyleSheet,
   ScrollView,
-  TextInput,
   Text,
   View,
   TouchableOpacity,
-  Image,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import { API_URL } from '@env';
+import {InputField} from './InputField';
+import Toast from 'react-native-toast-message';
 
 export default function Login() {
   const [fullName, setFullName] = useState('');
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [disable,setDisable] = useState(true)
   const navigation = useNavigation();
+  useEffect(()=>{
+    if(fullName && userName && password)
+    setDisable(false)
+    else
+    setDisable(true)
+  },[userName,fullName,password])
+
   function handleSignup() {
+    if(!fullName || !userName || !password){
+      Toast.show({
+        type: 'error',
+        text1: "Please enter all fields",
+        topOffset:0,
+      })
+      return
+    }
+    if (password.length < 8) {
+      Toast.show({
+        type: 'error',
+        text1: 'Password must be at least 8 characters long',
+        topOffset: 0,
+      });
+      return;
+    }
     const user = {
-      fullName: fullName,
-      userName: userName,
+      fullName: fullName.trim(),
+      userName: userName.trim(),
       password: password,
     };
 
@@ -33,132 +57,121 @@ export default function Login() {
     })
       .then(response => response.json())
       .then(data => {
+        console.log(data)
+        if(data.message === 'User already exists'){
+          Toast.show({
+            type: 'error',
+            text1: data.message,
+            topOffset: 0,
+          });
+        }
         if (data.userId) {
           console.log('User registered successfully');
           console.log('User ID:', data.userId);
           navigation.navigate('UserType', {userId: data.userId});
-        } else {
-          console.log('Registration error');
         }
       })
       .catch(error => {
-        console.error('Network errors', error);
+        console.log('Network errors', error.message);
+        Toast.show({
+          type: 'error',
+          text1: error.message,
+          topOffset: 0,
+        });
       });
   }
   return (
-    <ScrollView>
-      <Image
-        style={styles.loginPageImage}
-        source={require('./Assets/Shape.png')}
-      />
-      <View style={styles.headerContainer}>
-        <Text style={[styles.loginPageHeader, styles.headerFont]}>
-          Welcome Back!
-        </Text>
-        <Text style={[styles.loginPageHeader, styles.subtextFont]}>
-          Enter details and Get Started
-        </Text>
-      </View>
+    <View style={styles.containerStyle}>
+      <ScrollView>
+      <Toast/>
       <View style={styles.flexBox}>
-        <TextInput
-          style={styles.inputStyles}
-          placeholder="Full Name"
-          placeholderTextColor="rgba(151, 151, 151, 1)"
-          onChangeText={text => setFullName(text)}
-        />
-        <TextInput
-          style={styles.inputStyles}
-          placeholder="Create Username"
-          placeholderTextColor="rgba(151, 151, 151, 1)"
-          onChangeText={text => setUserName(text)}
-        />
-        <TextInput
-          style={styles.inputStyles}
-          placeholder="Password"
-          placeholderTextColor="rgba(151, 151, 151, 1)"
-          secureTextEntry={true}
-          onChangeText={text => setPassword(text)}
-        />
-        <TouchableOpacity
-          style={styles.buttonStyles}
-          onPress={handleSignup}>
-          <Text
-            style={{
-              textAlign: 'center',
-              fontSize: 16,
-              color: 'white',
-            }}>
-            Get Started
-          </Text>
-        </TouchableOpacity>
+        <InputField placeholder='Enter your full name' label='Full Name' onChangeText={(text: string)=> setFullName(text)} value={fullName}  />
+        <InputField placeholder='Enter UserName' label='UserName' onChangeText={(text: string)=> setUserName(text)} value={userName}  />
+        <InputField placeholder='Enter password' label='Paswword' secureTextEntry={true} onChangeText={(text: string)=> setPassword(text)} value={password}  />
 
-        <Text style={{color: 'rgba(166, 166, 170, 1)'}}>
-          Already have an account?{' '}
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+      <View style={{display:'flex', flexDirection:'row',flexWrap:'wrap',justifyContent:'center',gap:2}}>
+      <Text style={{color: 'rgba(166, 166, 170, 1)'}}>
+        By signing in, you agree to ArtFeast’s 
+        </Text>
             <Text
               style={{
-                color: 'rgba(158, 20, 57, 1)',
+                color: 'black',
+              }}>
+                 Terms of Service
+            </Text >
+            <Text style={{
+                color: 'black',
+              }}>and</Text>
+            <Text
+              style={{
+                color: 'black',
+              }}>
+                 Privacy Policy
+            </Text>
+       </View>
+      </View>
+      </ScrollView>
+    <View style={styles.bottomContainer}>
+         <View style={{display:'flex', flexDirection:'row',alignItems:'center',justifyContent:'center'}}>
+         <Text style={{color: 'rgba(166, 166, 170, 1)',}}>
+          Already have an account?{' '}
+          </Text>
+          <TouchableOpacity style={{}} onPress={() => navigation.navigate('Login')}>
+            <Text
+              style={{
+                color: 'black',
                 textDecorationLine: 'underline',
               }}>
               Login
             </Text>
           </TouchableOpacity>
-        </Text>
-      </View>
-    </ScrollView>
+        </View>
+        <TouchableOpacity
+          style={[styles.buttonStyles, {backgroundColor: disable ?  '#F5F7FA': 'black'}]}
+          // disabled={disable}
+          onPress={handleSignup}>
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 18,
+              color: `${disable ? "#717171": 'white'}`,
+            }}>
+            Signup
+          </Text>
+        </TouchableOpacity>
+         </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  loginPageImage: {
-    resizeMode: 'cover',
-    width: '100%',
-  },
-  headerFont: {
-    fontSize: 30,
-    color: 'rgba(255, 255, 255, 1)',
-  },
-  subtextFont: {
-    fontSize: 20,
-    color: ' rgba(255, 255, 255, 0.8)',
-  },
-  headerContainer: {
-    position: 'absolute',
-    right: 20,
-    top: 40,
-    // flex:1,
-    // textAlign:'right',
-    // justifyContent:'flex-end'
-  },
-  loginPageHeader: {
-    textAlign: 'right',
-    // color:"rgba(255, 255, 255, 1)"
-  },
-  header: {
-    fontSize: 32,
+  containerStyle: {
+    backgroundColor: 'white',
+    flex: 1,
+    margin: 0,
+    padding: 40,
+    // zIndex:-1000
+
   },
   flexBox: {
     flex: 1,
     gap: 20,
-    paddingHorizontal: 40,
+    marginTop:10,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  inputStyles: {
-    borderColor: 'rgba(0, 0, 0, 1)',
-    backgroundColor: 'rgba(229, 229, 229, 0.3)',
-    fontSize: 16,
-    height: 40,
-    width: '100%',
-    borderRadius: 8,
-    padding: 10,
+    zIndex:-1000
   },
   buttonStyles: {
-    backgroundColor: 'rgba(158, 20, 57, 1)',
+    // backgroundColor: '#F5F7FA',
     //  borderWidth:1,
-    borderRadius: 10,
+    borderRadius: 100,
     padding: 12,
     width: '100%',
-    color: 'rgba(0, 0, 0, 1)',
+    color: 'black',
   },
+  bottomContainer :{
+    gap: 20,
+    width:'100%',
+  }
+
 });

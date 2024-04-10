@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 import React, {useEffect, useRef, useState} from 'react';
 import {Animated, StyleSheet} from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 export function WithSplashScreen({
   children,
@@ -27,6 +28,12 @@ const HIDDEN = 'Hidden';
 export const Splash = ({isAppReady}: {isAppReady: boolean}) => {
   const containerOpacity = useRef(new Animated.Value(1)).current;
   const imageOpacity = useRef(new Animated.Value(0)).current;
+  const gradientColors = useRef([
+    '#FF92E0',
+    '#F98181',
+    '#FFC83D',
+    '#54E346',
+  ]).current;
 
   const [state, setState] = useState<
     | typeof LOADING_IMAGE
@@ -91,7 +98,7 @@ export const Splash = ({isAppReady}: {isAppReady: boolean}) => {
 const style = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#fffff',
+    backgroundColor: '#FF92E0',
     alignItems: 'center',
     justifyContent: 'center',
   },

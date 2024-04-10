@@ -16,6 +16,9 @@ import { Provider } from 'react-redux';
 import store from './store/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthorizationHeader } from './utils/api';
+import UploadScreen from './components/UploadScreen';
+import PostDescription from './components/PostDescription';
+import CartPage from './components/CartPage';
 
 function App(): JSX.Element {
   const Stack = createStackNavigator();
@@ -34,11 +37,12 @@ function App(): JSX.Element {
     }, 2000);
 
     const setTokenValue = async ()=>{
-      const retrievedToken = await AsyncStorage.getItem('token') 
-      setToken(retrievedToken)
-      if (token) {
-        setAuthorizationHeader(token);
-      }
+      const retrievedToken = await AsyncStorage.getItem('token',()=>{
+        setToken(retrievedToken)
+        if (token) {
+          setAuthorizationHeader(token);
+        }
+      })
     }
     console.log("token",token)
     setTokenValue()
@@ -48,16 +52,16 @@ function App(): JSX.Element {
     <WithSplashScreen isAppReady={isAppReady}>
     <Provider store={store}>
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="JoinNow">
+      <Stack.Navigator initialRouteName={token ? 'ProductPage' : 'JoinNow'} >
         <Stack.Screen
           name="Signin"
           component={Signin}
-          options={{headerShown: false}}
+          // options={{headerShown: false}}
         />
         <Stack.Screen
           name="Login"
           component={Login}
-          options={{headerShown: false}}
+          // options={{headerShown: false}}
         />
         <Stack.Screen
           name="Product"
@@ -82,8 +86,36 @@ function App(): JSX.Element {
         <Stack.Screen
           name="Profile"
           component={Profile}
-          // options={{headerShown: false}}
+          options={{headerShown: false}}
         />
+        <Stack.Screen
+          name="UploadScreen"
+          component={UploadScreen}
+          options={{
+            title: 'Upload Art',
+            headerStyle: {
+              backgroundColor: '#212121',
+            },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+         name="PostDescription"
+         component={PostDescription}
+         options={{headerShown: false}}
+         />
+         <Stack.Screen
+         name="Cart"
+         component={CartPage}
+        //  options={{headerShown: false}}
+        options={{
+          title: 'My Cart',
+          headerStyle: {
+            backgroundColor: '#212121',
+          },
+          headerTintColor: '#fff',
+        }}
+         />
       </Stack.Navigator>
     </NavigationContainer>
     </Provider>
