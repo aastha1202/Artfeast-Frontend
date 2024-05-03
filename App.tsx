@@ -2,23 +2,29 @@
 import React, { useState, useEffect} from 'react';
 // import SplashScreen from 'react-native-splash-screen';
 // import {SafeAreaView} from 'react-native';
-import Login from './components/Login';
+import Login from './components/screens/Login';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import Signin from './components/Signin';
+import Signin from './components/screens/Signin';
 import Product from './components/Product';
-import JoinNow from './components/JoinNow';
+import JoinNow from './components/screens/JoinNow';
 import UserType from './components/UserType';
-import {WithSplashScreen} from './components/Splash';
-import ProductPage from './components/ProductPage';
-import Profile from './components/Profile';
+import {WithSplashScreen} from './components/screens/Splash';
+import ProductPage from './components/screens/ProductPage';
+import Profile from './components/screens/Profile';
 import { Provider } from 'react-redux';
 import store from './store/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthorizationHeader } from './utils/api';
-import UploadScreen from './components/UploadScreen';
-import PostDescription from './components/PostDescription';
-import CartPage from './components/CartPage';
+import UploadScreen from './components/screens/UploadScreen';
+import PostDescription from './components/screens/PostDescription';
+import CartPage from './components/screens/CartPage';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import DynamicProfile from './components/screens/DynamicProfile';
+import NotificationPage from './components/screens/NotificationPage';
+import ArtistOrder from './components/screens/ArtistOrder';
+import CategoryPage from './components/screens/CategoryPage';
 
 function App(): JSX.Element {
   const Stack = createStackNavigator();
@@ -105,6 +111,21 @@ function App(): JSX.Element {
          options={{headerShown: false}}
          />
          <Stack.Screen
+         name="DynamicProfile"
+         component={DynamicProfile}
+         options={{headerShown: false}}
+         />
+          <Stack.Screen
+         name="NotificationPage"
+         component={NotificationPage}
+         options={{headerShown: false}}
+         />
+          <Stack.Screen
+         name="CategoryPage"
+         component={CategoryPage}
+         options={{headerShown: false}}
+         />
+         <Stack.Screen
          name="Cart"
          component={CartPage}
         //  options={{headerShown: false}}
@@ -122,5 +143,6 @@ function App(): JSX.Element {
     </WithSplashScreen>
   );
 }
+
 
 export default App;

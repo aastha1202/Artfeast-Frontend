@@ -8,7 +8,7 @@ import axios from 'axios';
 export const userDetails = createAsyncThunk('userDetails', async()=>{
     const token= await AsyncStorage.getItem('token')
     console.log('slice',token)
-    const response = await axios.get('http://192.168.29.4:3000/userDetails',{
+    const response = await axios.get('https://artfeast-backend.onrender.com/userDetails',{
         headers:{
             Authorization:`Bearer ${token}`
         }

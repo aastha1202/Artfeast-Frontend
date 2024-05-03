@@ -10,14 +10,17 @@ export interface Posts {
   // description: string
   trendingArtists : [{
     _id: string,
-    fullName: string
+    fullName: string,
+    userId: string,
+    profilePictureUrl: string
   }],
   trendingArts : [{
     _id: string,
     postUrl : string,
     price: number,
     user : string,
-    postId: number
+    postId: number,
+    theme: string
   }],
   categoriesPosts: [{
     postUrl : string,
@@ -40,6 +43,8 @@ export interface UserInfo {
        followers: string []
        role : string 
        fullName: string
+       profilePictureUrl: string
+       userId: string
 }
 
 export interface UserPosts{

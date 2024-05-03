@@ -28,12 +28,13 @@ const HIDDEN = 'Hidden';
 export const Splash = ({isAppReady}: {isAppReady: boolean}) => {
   const containerOpacity = useRef(new Animated.Value(1)).current;
   const imageOpacity = useRef(new Animated.Value(0)).current;
-  const gradientColors = useRef([
-    '#FF92E0',
-    '#F98181',
-    '#FFC83D',
-    '#54E346',
-  ]).current;
+  const gradients = [
+    ['#FF92E0', '#E28181', '#B672C7', '#995887'],
+    ['#995887', '#B672C7', '#7EC772', '#F98FCC'],
+    ['#995887', '#7299C7', '#C77272', '#F98FCC'],
+    ['#759958', '#C1C772', '#72C7C2', '#F98FCC'],
+  ];
+  
 
   const [state, setState] = useState<
     | typeof LOADING_IMAGE
@@ -82,8 +83,9 @@ export const Splash = ({isAppReady}: {isAppReady: boolean}) => {
     <Animated.View
       collapsable={false}
       style={[style.container, {opacity: containerOpacity}]}>
+      <LinearGradient start={{x: 0, y: 0}} end={{x: 1, y: 1}} colors={['#FF92E0', '#E28181', '#B672C7', '#995887']} style={style.linearGradient}>
       <Animated.Image
-        source={require('./Assets/Logo.png')}
+        source={require('../Assets/SplashScreenLogo.png')}
         fadeDuration={0}
         onLoad={() => {
           setState(FADE_IN_IMAGE);
@@ -91,6 +93,7 @@ export const Splash = ({isAppReady}: {isAppReady: boolean}) => {
         style={[style.image, {opacity: imageOpacity}]}
         resizeMode="contain"
       />
+      </LinearGradient>
     </Animated.View>
   );
 };
@@ -105,5 +108,15 @@ const style = StyleSheet.create({
   image: {
     width: 250,
     height: 250,
+  },
+  linearGradient: {
+    width: '100%',
+    flex:1,
+    alignItems:'center',
+    justifyContent:'center'
+    // flex: 1,
+    // paddingLeft: 15,
+    // paddingRight: 15,
+    // borderRadius: 5
   },
 });

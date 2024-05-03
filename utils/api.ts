@@ -12,7 +12,7 @@ if(!global.atob){
 }
 
 
-export const  setAuthorizationHeader =  (token : string) => {
+export const  setAuthorizationHeader =  (token : string, callback?: ()=> void) => {
   if (token) {
     // const decodedToken = jwtDecode(token) as { exp: number };
     // const expirationTime = decodedToken.exp * 1000;
@@ -23,7 +23,9 @@ export const  setAuthorizationHeader =  (token : string) => {
     //   console.log('Token has expired');
     // } else {
       instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log(!!instance.defaults.headers.common['Authorization'])
       console.log('token', token)
+     callback && callback();
     // }
   } else {
     delete instance.defaults.headers.common['Authorization'];

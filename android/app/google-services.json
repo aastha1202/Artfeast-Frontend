@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "11521389717",
+    "project_id": "artfeast-notification",
+    "storage_bucket": "artfeast-notification.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:11521389717:android:48d69ff83307ba8a66d79c",
+        "android_client_info": {
+          "package_name": "com.newapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVPuZWRHFgzLFpKqCO120iMGzUQxDUPqA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,16 +6,19 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import React ,{ useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native"
 import { RootStackParamList } from "types/RouteTypes";
-import api from '../utils/api'
+import api from '../../utils/api'
 import { API_URL } from "@env";
 import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import Icon from 'react-native-vector-icons/FontAwesome'
-import { AFButton } from "./InputField";
+import Icons from 'react-native-vector-icons/Feather'
+import { AFButton, ArtworkDetailsValues } from "../InputField";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAppDispatch, useAppSelector } from "../hooks";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 import { UserInfo } from "types/ComponentTypes";
-import { userDetails } from "../features/userDetailsSlice";
+import { userDetails } from "../../features/userDetailsSlice";
+import Comment from "../Comment";
+import { ArtFeastText } from "../ArtFeastText";
 
 interface PostDetails {
   postUrl: string,
@@ -23,33 +26,47 @@ interface PostDetails {
   price: string,
   userId : {
     userId: string,
-    fullName: string
+    fullName: string,
+    profilePictureUrl: string
   }
   likes: string[]
+  category: string
+  dimensions: {
+    height: number,
+    width : number,
+    depth: number
+  },
+  condition: string
+  customization: boolean
+  artworkName: string
+
 } 
 
 const PostDescription = () => {
-    const [postDetails, setPostDetails] = useState<PostDetails>({postUrl:'', price: '', description: '' ,likes:[], userId : {userId: '',fullName: ''}})
+    const [postDetails, setPostDetails] = useState<PostDetails>({postUrl:'', price: '', description: '' ,likes:[], userId : {userId: '',fullName: '', profilePictureUrl:''},category:'', dimensions: {height:0, width: 0, depth: 0}, condition:'', customization: false, artworkName:''})
     const [postId, setPostId] = useState('')
     const dispatch =  useAppDispatch()
     const user= useAppSelector(state=> state.data as UserInfo | null ) 
-    const [refetchData, setRefetchData] = useState(false)
     const [followings, setFollowings] = React.useState<string[]>([]) 
     const route = useRoute<RouteProp<RootStackParamList, 'PostDescription'>>();
+    const [openComment,setOpenComment] = useState(false)
     const navigation = useNavigation()
+    const [isSameArtist, setSameArtist] = useState(false)
+    async function fetchPostDetails(){
+      console.log(postId)
+      console.log(API_URL)
+      await api.get(`${API_URL}/post/${postId}`).then((res)=> {
+        console.log('response from ',res.data.userId)
+         setSameArtist(res.data.userId.userId === user?.userId)
+         console.log(isSameArtist)
+        setPostDetails(res.data)
+      }).catch((err)=> console.log(err))
+    }
     useEffect(() => {
       dispatch(userDetails())
       setPostId(route.params?.postId)
-      async function fetchPostDetails(){
-        console.log(postId)
-        await api.get(`${API_URL}/post/${postId}`).then((res)=> {
-          console.log('pd',res.data)
-          setPostDetails(res.data)
-        }).catch((err)=> console.log(err))
-      }
       fetchPostDetails()
-
-    }, [route.params?.postId, postId,refetchData]);
+    }, [route.params?.postId, postId]);
     useEffect(() => {
       if (user?.followings) {
         setFollowings(user.followings); 
@@ -96,14 +113,31 @@ const PostDescription = () => {
     async function handleLikePost() {
       try {
         console.log('postId', postId)
-        await api.post(`${API_URL}/post/like/${postId}`);
-        setRefetchData(true)
+        await api.post(`${API_URL}/post/like/${postId}`).then(()=> {
+          // setRefetchData(false)
+          fetchPostDetails()
+        })
       } catch (error) {
         console.log(error);
       }
     }
+
+    async function handleUnlikePost(){
+      try {
+        console.log('postId', postId)
+        await api.post(`${API_URL}/post/unlike/${postId}`).then(()=> {
+          // setRefetchData(false)
+          fetchPostDetails()
+        })
+      } catch (error) {
+        console.log(error);
+      }
+    }
+
+
     return (
         <View style={styles.ParentDiv}>
+
            <ScrollView>
           {/* Post Image */}
             <View style={{padding:20}}>
@@ -114,8 +148,8 @@ const PostDescription = () => {
                     <TouchableOpacity
                         style={styles.productImageStyles}
                         onPress={() => navigation.navigate('Product', { data: postDetails.postUrl })}>
-                        <Image source={require('./Assets/viewfinder-dot.png')} />
-                        <Text style={styles.scanText}>Scan art on your wall</Text>
+                        <Image source={require('../Assets/viewfinder-dot.png')} />
+                        <ArtFeastText style={styles.scanText} text="Scan art on your wall"/>
                     </TouchableOpacity>
                 </View>
               </View>
@@ -124,66 +158,94 @@ const PostDescription = () => {
             {/* Like , Comment , Save */}
             <View style={{backgroundColor:'#F5F7FA', display:'flex', flexDirection:'row', justifyContent:'space-between', padding:20}}>
               <View style={{display:'flex', flexDirection:'row', alignItems:'center' , gap:10}}>
-              {!postDetails?.likes?.includes(postDetails?.userId?.userId) ? <TouchableOpacity onPress={handleLikePost}>
+              {user && !postDetails?.likes?.includes(user.userId) ? 
+              <View style={{alignItems:'center'}}>
+              <TouchableOpacity onPress={handleLikePost}>
                <Icon name='heart-o' color='#212121' size={20} />
-              </TouchableOpacity> : 
-              <TouchableOpacity >
+              </TouchableOpacity>
+              </View> : 
+              <TouchableOpacity onPress={handleUnlikePost} >
                  <Icon name='heart' color='#212121' size={20} />
                 </TouchableOpacity>}
-                <Text style={styles.TextColor}>Like</Text>
+                <ArtFeastText style={styles.TextColor} text='Like'/>
               </View>
-              <View style={styles.horizontalLine}></View>
+              <View style={styles.verticalLine}></View>
            
               <View style={{display:'flex', flexDirection:'row', alignItems:'center', gap:10}}>
-              <Icon name='heart-o' color='#212121' size={20}/>
-                <Text style={styles.TextColor}>Comment</Text>
+              <TouchableOpacity onPress={()=> setOpenComment(true)}>
+              <Icons name='message-circle' color='#212121' size={20}/>
+                </TouchableOpacity>
+                <ArtFeastText style={styles.TextColor} text='Comment'/>
               </View>
-              <View style={styles.horizontalLine}></View>
+              <View style={styles.verticalLine}></View>
 
 
              <View style={{display:'flex', flexDirection:'row', alignItems:'center', gap:10}}>
               <Icon name='heart-o' color='#212121' size={20}/>
-                <Text style={styles.TextColor}>Save</Text>
+                <ArtFeastText style={styles.TextColor} text='Save'/>
               </View>
             </View>
+
+
+            {/* Artwork Details */}
+            {!openComment ? <View style={{gap: 10,padding:20}}> 
+            <ArtworkDetailsValues label='Category' value={postDetails.category}/>
+            <ArtworkDetailsValues label='Dimension' value={`${postDetails.dimensions?.height}x${postDetails.dimensions?.width}x${postDetails.dimensions?.depth} inch`}/>
+            <ArtworkDetailsValues label="Condition" value={postDetails.condition}/>
+            <ArtworkDetailsValues label="Customization" value={postDetails.customization ? 'Yes' : 'No'}/>
+            <ArtworkDetailsValues label="Artwork Name" value={postDetails.artworkName}/>
+            </View> : 
+            <Comment postId={postId}/>
+            }
+
+
+            <View style={styles.horizontalLine}></View>
 
             {/* About the Artwork */}
             <View style={{padding:20, gap:20}}>
-              <Text style={{color:'#212121', fontWeight:'600', fontSize:20}}>About the Artwork</Text>
-              <Text style={{color:'#212121', fontSize:17}}>{postDetails.description} Lorem ipsum dolor sit amet consectetur. Adipiscing in tincidunt sagittis senectus nulla urna. Pretium mi quis eleifend egestas semper sem ac aliquam. Sapien sit pretium suspendisse gravida nibh diam dictum at. Morbi porta velit suscipit urna vestibulum eu id sapien.</Text>
+              <ArtFeastText style={{color:'#212121', fontFamily:'Inter-Bold', fontSize:20}} text='About the Artwork'/>
+              <ArtFeastText style={{color:'#212121', fontSize:17}} text={postDetails.description}/>
+              {/* Lorem ipsum dolor sit amet consectetur. Adipiscing in tincidunt sagittis senectus nulla urna. Pretium mi quis eleifend egestas semper sem ac aliquam. Sapien sit pretium suspendisse gravida nibh diam dictum at. Morbi porta velit suscipit urna vestibulum eu id sapien. */}
             </View>
+
+            <View style={styles.horizontalLine}></View>
 
             {/* About the artist */}
             <View style={{padding:20, gap:20}}>
-              <Text style={{color:'#212121', fontWeight:'600', fontSize:20}}>About the Artist</Text>
+              <ArtFeastText style={{color:'#212121', fontFamily:'Inter-Bold', fontSize:20}} text='About the Artist'/>
               <View style={{display: 'flex', flexDirection:'row', justifyContent: 'space-between'}}>
               <View style={{display: 'flex', flexDirection:'row', gap: 20, alignItems:'center'}}>
-              <Image source={require('./Assets/Oval.png')} />
+              <Image source={{uri:postDetails?.userId?.profilePictureUrl}} style={{borderRadius:100,width:50,aspectRatio:1}}/>
+              
               <View style={{display:'flex'}}>
-              <Text style={{color:'#212121', fontSize:17}}>{postDetails?.userId?.fullName}  </Text>
-              <Text style={{color:'#89939E', fontSize:16}}>Artist</Text>
+              <ArtFeastText style={{color:'#212121', fontSize:17}} text={postDetails?.userId?.fullName}/>
+              <ArtFeastText style={{color:'#89939E', fontSize:16}} text='Artist'/>
               </View>
               </View>
               {/* Follow button */}
-              {!followings.includes(postDetails?.userId?.userId) ? (
-              <TouchableOpacity style={{borderWidth: 1, paddingHorizontal: 20, paddingVertical: 5, borderRadius: 100 , borderColor: '#212121' }} onPress={()=>handleFollow(postDetails.userId.userId)}>
-                <Text style={{color:'#212121', fontSize:17}}>
-                  Follow
-                </Text>
-              </TouchableOpacity>) : (
-                <TouchableOpacity style={{borderWidth: 1, paddingHorizontal: 20, paddingVertical: 5, borderRadius: 100 , borderColor: '#212121' }} onPress={()=> handleUnFollow(postDetails.userId.userId)}>
-                <Text style={{color:'#212121', fontSize:17}}>
-                  Unfollow
-                </Text>
-              </TouchableOpacity>
-              )}
+              {!isSameArtist ? 
+                !followings.includes(postDetails?.userId?.userId) ? (
+                  <TouchableOpacity style={{borderWidth: 1, paddingHorizontal: 20, paddingVertical: 5, borderRadius: 100 , borderColor: '#212121' }} onPress={()=>handleFollow(postDetails.userId.userId)}>
+                    <ArtFeastText style={{color:'#212121', fontSize:17}} text='Follow'/>
+                  </TouchableOpacity>) : (
+                    <TouchableOpacity style={{borderWidth: 1, paddingHorizontal: 20, paddingVertical: 5, borderRadius: 100 , borderColor: '#212121' }} onPress={()=> handleUnFollow(postDetails.userId.userId)}>
+                    <ArtFeastText style={{color:'#212121', fontSize:17}} text='Unfollow'/>
+                      
+                  </TouchableOpacity>
+                  )
+                  : 
+                  <></>
+              }
+              
               </View>
 
             </View>
+
+            
             </ScrollView>
             {/* Add to cart */}
             <View style={styles.AddToCartDiv}> 
-            <Text style={{color:'black', fontWeight:'600', fontSize:30}}>Rs. {postDetails.price}</Text>
+            <ArtFeastText style={{color:'black', fontFamily:'Inter-Bold', fontSize:30}} text={`Rs. ${postDetails.price}`}/>
             <View style={{display:'flex', flexDirection:'row', width: '100%',justifyContent:'space-between' }}>
             <AFButton fill="white" title="Add to Cart"  onPress={handleAddCart}/>
             <AFButton fill='black' title="Buy Now"  onPress={handleAddCart}/>
@@ -241,7 +303,7 @@ const styles= StyleSheet.create({
       fontSize: 16,
       color: 'white',
   },
-  horizontalLine:{
+  verticalLine:{
     height: '100%',
     borderLeftWidth:1,
     borderLeftColor: '#212121',
@@ -255,13 +317,20 @@ const styles= StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 3,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderTopStartRadius: 1,
+    elevation: 1,
+    paddingHorizontal: '5%',
+    paddingVertical: '3%',
+    borderTopStartRadius: 0.2,
+    margin:0,
     width: '100%',
-    gap:10,
-
-  }
+    gap: 10,
+  },
+  horizontalLine:{
+    marginHorizontal:20,
+    borderTopWidth:1,
+    borderTopColor: '#89939E',
+    marginTop:10
+  },
+  
 })
 export default PostDescription

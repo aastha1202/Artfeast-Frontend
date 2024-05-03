@@ -2,38 +2,33 @@
 import {StyleSheet, Text, View, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import {useNavigation} from '@react-navigation/native';
+import { ArtFeastText } from '../ArtFeastText';
 
 export default function JoinNow() {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.joinNowContainer} >
-      <Text style={styles.joinNowHeader}>
-      Artfeast - Where Creativity Flourishes
-      </Text>
-      <Text style={styles.joinNowSubText}>
-      Welcome to Artfeast, a vibrant hub where artists thrive and art enthusiasts explore. Let's ignite creativity together!
-      </Text>
+      <ArtFeastText style={styles.joinNowHeader} text='Artfeast - Where Creativity Flourishes'/>
+      <ArtFeastText style={styles.joinNowSubText} text="Welcome to Artfeast, a vibrant hub where artists thrive and art enthusiasts explore. Let's ignite creativity together!"/>
       <View style={styles.buttonContainer}>
       <TouchableOpacity
         style={[styles.buttonStyles, {backgroundColor:'white'}]}
         onPress={() => navigation.navigate('Signin')}>
-        <Text
-          style={[styles.buttonText, {color:'black'}]}>
-          Signup
-        </Text>
+        <ArtFeastText style={styles.buttonText} text='Signup'/>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.buttonStyles, {borderBlockColor:'white', borderWidth:2}]}
-        onPress={() => navigation.navigate('Login')}>
-        <Text
-          style={[styles.buttonText, {color:'white'}]}>
-          Login
-        </Text>
+        onPress={() => {
+          navigation.navigate('Login')
+          console.log('clicked')
+          }}>
+        <ArtFeastText
+          style={{color:'white',fontSize:18, textAlign:'center'}} text='Login'/>
       </TouchableOpacity>
       </View>
       </View>
-      <Image source={require('./Assets/JoinNow.png')} style={styles.imgStyling} />   
+      <Image resizeMode='cover' source={require('../Assets/JoinNow.png')} style={styles.imgStyling} />   
     </View>
   );
 }
@@ -47,8 +42,9 @@ const styles = StyleSheet.create({
   },
   joinNowHeader: {
     fontSize: 30,
-    fontWeight: '500',
+    fontWeight: '700',
     color: 'rgba(255, 255, 255, 1)',
+    fontFamily: "Inter, sans-serif",
   },
   joinNowSubText:{
     color: 'rgba(255, 255, 255, 1)',

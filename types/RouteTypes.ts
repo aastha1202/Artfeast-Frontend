@@ -7,5 +7,11 @@ export type RootStackParamList = {
     description: string,
     price: number
     postId: string
+  },
+  DynamicProfile : {
+    userId: string
+  },
+  CategoryPage: {
+    categoryName: string
   }
 };

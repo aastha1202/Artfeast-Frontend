@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
-import React from "react"
-import { StyleSheet, Text, View, ViewStyle } from "react-native"
+import React, { useEffect, useState } from "react"
+import { Animated, Pressable, StyleSheet, Text, View, ViewStyle } from "react-native"
 import { TextInput, TouchableOpacity } from "react-native-gesture-handler"
+import { ArtFeastText } from "./ArtFeastText"
 
 interface InputFieldType{
     label: string,
@@ -12,17 +13,46 @@ interface InputFieldType{
 }
 
 function InputField({ label, value, onChangeText, placeholder,secureTextEntry }: InputFieldType){
+  const [isFocused, setIsFocused] = useState(false)
+  const labelPosition = new Animated.Value(isFocused || value ? -10 : 20);
+  const labelstyle = {
+    color: isFocused || value ? 'black' : 'rgba(151, 151, 151, 1)',
+    top:labelPosition,
+    left:10,
+    backgroundColor:'white'
+  }
+    function handleFocus(){
+      setIsFocused(true)
+      Animated.timing(labelPosition, {
+        toValue: -10,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+
+    const handleBlur = () => {
+      setIsFocused(false);
+      if (!value) {
+        Animated.timing(labelPosition, {
+          toValue: 10,
+          duration: 200,
+          useNativeDriver: false,
+        }).start();
+      }
+    };
     return(
     <View style={styles.inputTextContainer}>
-    <Text style={{color:'black',position:'absolute', top:-10 , left:10, backgroundColor:'white'}}>{label}</Text>
+    <Animated.Text style={[labelstyle,styles.label]}>{label}</Animated.Text>
       <TextInput
         style={styles.inputStyles}
         placeholder={placeholder}
-        placeholderTextColor="rgba(151, 151, 151, 1)"
+        // placeholderTextColor="rgba(151, 151, 151, 1)"
         cursorColor='black'
         onChangeText={onChangeText}
         value={value}
         secureTextEntry={secureTextEntry}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       />
       </View>
     )
@@ -38,18 +68,17 @@ interface AFButtonProps {
 function AFButton({title,onPress, fill, customStyle,disabled}: AFButtonProps){
   return(
 <TouchableOpacity
-  style={[styles.buttonStyles,{backgroundColor: fill==='white' ? 'white' : '#212121', borderWidth: 1.5, borderColor: '#212121',},customStyle]}
-  disabled={disabled}
-  onPress={onPress}>
-  <Text
+  style={[styles.buttonStyles,{backgroundColor: fill==='white' ? 'white' : disabled? '#F5F7FA' :'#212121', borderWidth: disabled? 0:1.5, borderColor: '#212121',},customStyle]}
+  onPress={onPress}
+  activeOpacity={0.8}
+  >
+  <ArtFeastText
     style={{
       textAlign: 'center',
       fontSize: 18,
-      color: fill==='white' ? '#212121' : 'white' ,
+      color: fill==='white' ? '#212121' : disabled? '#89939E':'white' ,
       
-    }}>
-    {title}
-  </Text>
+    }} text=    {title} />
 </TouchableOpacity>
   )
 } 
@@ -58,11 +87,41 @@ interface AFInputField  {
   placeholder: string
   keyboardType: 'default' | 'numeric' | 'email-address' | 'phone-pad';
   onChangeText : (text: string)=>void 
+  value?: string 
 }
 
-function AFInputField ({placeholder,keyboardType, onChangeText}:AFInputField){
+function AFInputField ({placeholder,keyboardType, onChangeText,value }:AFInputField){
+  const [editable, setEditable] = useState(true)
+  const [disable, setDisabled] = useState(false)
+  useEffect(() => {
+    if (value &&  value?.length>=1) {
+      setEditable(true);
+    } else {
+      setEditable(false);
+    }
+  }, [value]);
+
   return(
-    <TextInput placeholder={placeholder} onChangeText={(text:  string)=>onChangeText(text)} keyboardType={keyboardType} cursorColor='black'  placeholderTextColor='#89939E'  style={{backgroundColor:'#F5F7FA',minWidth:100,color:'black',borderRadius:10,paddingHorizontal:10}}/>
+    <Pressable onPress={()=> setEditable(true)}>
+ <TextInput  placeholder={placeholder}  onChangeText={(text:  string)=>onChangeText(text)} keyboardType={keyboardType} cursorColor='black'  placeholderTextColor='#89939E'  style={{backgroundColor: editable ? 'white': '#F5F7FA', borderWidth: 1,minWidth:100,borderColor:editable? '#89939E': '#F5F7FA',color:'black',borderRadius:10,paddingHorizontal:10,fontSize:15, fontFamily:'Inter'}}/>
+   </Pressable>
+  )
+}
+
+
+interface ArtworkDetailsValuesTypes  {
+  label: string
+  value: string
+
+}
+
+function ArtworkDetailsValues ({label,value}: ArtworkDetailsValuesTypes){
+  return(
+    <View style={{ display:'flex',flexDirection:'row', alignItems:'center', width: '80%'}}>
+    <ArtFeastText style={{color:'#212121',fontSize:17, width: '50%'}} text={label}/>
+    <ArtFeastText style={{color:'#212121',fontSize:17,fontFamily:'Inter-SemiBold' }} text={value}/>
+  </View>
+
   )
 }
 
@@ -80,7 +139,8 @@ const styles = StyleSheet.create({
         // height: 40,
         width: '100%',
         borderRadius: 10,
-        padding:15
+        padding:15,
+        fontFamily:'Inter'
       },
       buttonStyles: {
         paddingVertical: 12,
@@ -88,7 +148,12 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         width: 180
       },
-
+      label:{
+        position:'absolute',
+        paddingHorizontal:0,
+        textAlignVertical:'center',
+        zIndex: 100,
+      }
 })
 
-export  {AFButton, InputField, AFInputField }
+export  {AFButton, InputField, AFInputField, ArtworkDetailsValues }

@@ -19,7 +19,7 @@ export default function Sidebar() {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => setShowSidebar(true)}>
-        <Text style={{color:'black'}}>Open Sidebar</Text>
+        {/* <Text style={{color:'black'}}>Open Sidebar</Text> */}
       </TouchableOpacity>
 
       <Modal

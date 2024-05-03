@@ -11,15 +11,16 @@ import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '@env';
-import { setAuthorizationHeader } from '../utils/api';
-import {InputField} from './InputField';
+import {API_URL} from '@env';
+import {setAuthorizationHeader} from '../../utils/api';
+import {InputField} from '../InputField';
 import Toast from 'react-native-toast-message';
+import {ArtFeastText} from '../ArtFeastText';
 
 export default function Signin() {
   const [userName, setUserName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [disable,setDisable] = useState(true)
+  const [disable, setDisable] = useState(true);
   const navigation = useNavigation();
   const user = {
     userName: userName,
@@ -28,35 +29,38 @@ export default function Signin() {
   const storeToken = async (token: string) => {
     try {
       console.log('afterlogin', token);
-      const tokens = await AsyncStorage.getItem('token', ()=>{
-        console.log(tokens,'afterlogin if there is any token')
-      })
-      await AsyncStorage.setItem('token', token, async ()=> {
+      const tokens = await AsyncStorage.getItem('token', () => {
+        console.log(tokens, 'afterlogin if there is any token');
+        navigation.navigate('ProductPage');
+      });
+      await AsyncStorage.setItem('token', token, async () => {
         const savedtoken = await AsyncStorage.getItem('token');
         console.log('uid', savedtoken);
-        if(savedtoken){
-          setAuthorizationHeader(savedtoken)
+        if (savedtoken) {
+          setAuthorizationHeader(savedtoken, () => {
+            console.log('function called');
+            navigation.navigate('ProductPage');
+          });
         }
       });
     } catch (error) {
       console.log(error);
     }
   };
-  useEffect(()=>{
-    if(userName && password)
-    setDisable(false)
-    else
-    setDisable(true)
-  },[userName,password])
+  useEffect(() => {
+    if (userName && password) setDisable(false);
+    else setDisable(true);
+  }, [userName, password]);
 
   function handleLogin() {
-    if(!userName || !password){
+    console.log('clicked')
+    if (!userName || !password) {
       Toast.show({
         type: 'error',
         text1: 'Please enter all the fields',
         topOffset: 0,
       });
-      return
+      return;
     }
     fetch(`${API_URL}/auth/login`, {
       method: 'POST',
@@ -68,12 +72,10 @@ export default function Signin() {
       .then(response => response.json())
       .then(data => {
         if (data) {
-          if(data.message==='Login successful'){
+          if (data.message === 'Login successful') {
             console.log('data', data.token);
             storeToken(data.token);
-            navigation.navigate('ProductPage');
-          }
-          else{
+          } else {
             Toast.show({
               type: 'error',
               text1: data.message,
@@ -90,52 +92,63 @@ export default function Signin() {
   }
   return (
     <View style={styles.containerStyle}>
-    <Toast/>
-    <ScrollView>
-      <View style={styles.flexBox}>
-        <InputField
-          placeholder="Enter UserName"
-          onChangeText={text => setUserName(text.trim())}
-          value={userName}
-          label='UserName'
-        />
-        <InputField
-          placeholder="Password"
-          secureTextEntry={true}
-          onChangeText={text => setPassword(text)}
-          value={password}
-          label='Password'
-        />
-      </View>
-    </ScrollView>
-    <View style={styles.bottomContainer}>
-         <View style={{display:'flex', flexDirection:'row',alignItems:'center',justifyContent:'center'}}>
-         <Text style={{color: 'rgba(166, 166, 170, 1)',}}>
-         Are you new at Artfeast?{' '}
-          </Text>
-          <TouchableOpacity style={{}} onPress={() => navigation.navigate('Signin')}>
-            <Text
+      <Toast />
+      <ScrollView>
+        <View style={styles.flexBox}>
+          <InputField
+            placeholder="Enter UserName"
+            onChangeText={text => setUserName(text.trim())}
+            value={userName}
+            label="UserName"
+          />
+          <InputField
+            placeholder="Password"
+            secureTextEntry={true}
+            onChangeText={text => setPassword(text)}
+            value={password}
+            label="Password"
+          />
+        </View>
+      </ScrollView>
+      <View style={styles.bottomContainer}>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <ArtFeastText
+            style={{color: 'rgba(166, 166, 170, 1)'}}
+            text="Are you new at Artfeast?"
+          />
+          <TouchableOpacity
+            style={{}}
+            onPress={() => navigation.navigate('Signin')}>
+            <ArtFeastText
               style={{
-                color: 'black',
                 textDecorationLine: 'underline',
-              }}>
-              Sign up
-            </Text>
+              }}
+              text="Sign up"
+            />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          style={[styles.buttonStyles, {backgroundColor: disable ?  '#F5F7FA': 'black'}]}
+          style={[
+            styles.buttonStyles,
+            {backgroundColor: disable ? '#F5F7FA' : 'black'},
+          ]}
           onPress={handleLogin}>
-          <Text
+          <ArtFeastText
             style={{
               textAlign: 'center',
               fontSize: 18,
-              color: `${disable ? "#717171": 'white'}`,
-            }}>
-            Login
-          </Text>
+              color: `${disable ? '#717171' : 'white'}`,
+            }}
+            text="Login"
+          />
         </TouchableOpacity>
-</View>
+      </View>
     </View>
   );
 }
@@ -146,7 +159,6 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 0,
     padding: 40,
-
   },
   flexBox: {
     flex: 1,
@@ -163,8 +175,8 @@ const styles = StyleSheet.create({
     width: '100%',
     color: 'black',
   },
-  bottomContainer :{
+  bottomContainer: {
     gap: 20,
-    width:'100%',
-  }
+    width: '100%',
+  },
 });

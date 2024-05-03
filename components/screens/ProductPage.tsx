@@ -3,18 +3,20 @@
 /* eslint-disable react-native/no-inline-styles */
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
-import {Image, View, StyleSheet, Text, TouchableOpacity} from 'react-native';
+import {Image, View, StyleSheet, TouchableOpacity} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 // import * as ImagePicker from 'react-native-image-picker';
-import BottomNavigation from './BottomNavigation';
+import BottomNavigation from '../BottomNavigation';
 import {API_URL} from '@env';
-import {Posts, UserInfo} from '../types/ComponentTypes';
-import api from '../utils/api';
-import {userDetails} from '../features/userDetailsSlice';
-import {useAppSelector, useAppDispatch} from '../hooks';
+import {Posts, UserInfo} from '../../types/ComponentTypes';
+import api from '../../utils/api';
+import {userDetails} from '../../features/userDetailsSlice';
+import {useAppSelector, useAppDispatch} from '../../hooks';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Icons from 'react-native-vector-icons/EvilIcons';
+import Icons from 'react-native-vector-icons/Feather';
 import {useIsFocused} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ArtFeastText } from '../ArtFeastText';
 
 interface ProductPageProps {}
 
@@ -27,22 +29,27 @@ const ProductPage: React.FC<ProductPageProps> = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // const token = await AsyncStorage.getItem('token');
-      try {
-        const response = await api.get(`${API_URL}/post/`);
-        // console.log('response from home page', response.data);
-        setPosts(response.data);
-      } catch (error) {
-        if (error instanceof Error)
-          console.error('Error fetching data:', error.message);
+      const token = await AsyncStorage.getItem('token')
+      console.log(token, 'profilePage')
+      if (token){
+        console.log(API_URL,'api')
+        try {
+          const response = await api.get(`${API_URL}/post/`);
+          console.log('response fromxx home page', response.data.trendingArtists);
+          setPosts(response.data);
+        } catch (error) {
+          if (error instanceof Error)
+            console.error('Error fetching data:', error.message);
+        }
       }
+      // const token = await AsyncStorage.getItem('token');
     };
 
     fetchData();
 
     dispatch(userDetails());
     console.log('productpg', user);
-  }, [isFocused]);
+  }, [ isFocused]);
 
   return (
     <View style={{flex: 1}}>
@@ -52,28 +59,31 @@ const ProductPage: React.FC<ProductPageProps> = () => {
           <Image
             resizeMode="contain"
             style={[styles.image]}
-            source={require('./Assets/NewLogo.png')}
+            source={require('../Assets/NewLogo.png')}
           />
           <View style={styles.flex}>
-            <Icons name="search" color="black" size={40} />
+            <Icons name="search" color="black" size={30} />
             <Icon name="heart-o" color="black" size={30} />
           </View>
         </View>
 
         {/* Top artist */}
         <View>
-          <Text style={{fontWeight: '500', color: 'black', fontSize: 20,paddingLeft: 20,marginVertical:10}}>
-            Explore our top Artists
-          </Text>
+          <ArtFeastText style={{fontFamily:'Inter-Bold',fontSize: 20,paddingLeft: 20,marginVertical:10}} text='Explore our top Artists'/>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
             <View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
               {allPosts?.trendingArtists?.map(artist => (
                 <View key={artist._id} style={{alignItems: 'center'}}>
+                  <TouchableOpacity onPress={()=> navigation.navigate('DynamicProfile', {
+                    userId:artist.userId
+                  })}>
                   <Image
                     resizeMode="contain"
-                    source={require('./Assets/ProflePic.png')}
+                    source={{uri: artist.profilePictureUrl}}
+                    style={{aspectRatio:1,height:80 ,borderRadius:100}}
                   />
-                  <Text style={{color: 'black'}}>{artist.fullName}</Text>
+                  </TouchableOpacity>
+                  <ArtFeastText style={{color: 'black',fontSize:17}} text={artist.fullName}/>
                 </View>
               ))}
             </View>
@@ -82,10 +92,8 @@ const ProductPage: React.FC<ProductPageProps> = () => {
 
         {/* Trending Arts */}
         <View>
-          <Text style={{fontWeight: '500', color: 'black', fontSize: 20,paddingLeft:20,marginVertical:10}}>
-            Trending Arts
-          </Text>
-          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <ArtFeastText style={{fontFamily:'Inter-Bold', fontSize: 20,paddingLeft:20,marginVertical:10}} text='Trending Arts' />
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
             <View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
               {allPosts?.trendingArts?.map(artist => (
                 <View key={artist._id}>
@@ -97,14 +105,14 @@ const ProductPage: React.FC<ProductPageProps> = () => {
                     }>
                     <Image
                       source={{uri: artist.postUrl}}
-                      width={120}
-                      height={120}
+                      width={180}
+                      height={180}
+                      
                     />
                   </TouchableOpacity>
-                  <Text style={{color: 'black'}}>{artist.user}</Text>
-                  <Text style={{color: 'black', fontWeight: '500'}}>
-                    Rs. {artist.price}
-                  </Text>
+                  <ArtFeastText style={{fontSize:17}} text={artist.user}/>
+                  <ArtFeastText style={{fontSize:17, color:'#89939E', fontStyle:'italic'}} text={artist.theme}/>
+                  <ArtFeastText style={{fontFamily:'Inter-SemiBold',fontSize:17}} text={`Rs. ${artist.price}`}/>
                 </View>
               ))}
             </View>
@@ -113,26 +121,24 @@ const ProductPage: React.FC<ProductPageProps> = () => {
 
         {/* Categories */}
         <View>
-        <Text style={{fontWeight: '500', color: 'black', fontSize: 20,paddingLeft: 20,marginVertical:10}}>
-            Explore by Category
-          </Text>
+        <ArtFeastText style={{fontFamily:'Inter-Bold', fontSize: 20,paddingLeft: 20,marginVertical:10}} text='Explore by Category'/>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
             {allPosts?.categoriesPosts?.map((post,index)=>(
-                       <View key={index}>
-                       {/* <TouchableOpacity
+                       <View key={index} gap={10}>
+                       <TouchableOpacity
                          onPress={() =>
-                           navigation.navigate('PostDescription', {
-                             postId: artist.postId,
+                           navigation.navigate('CategoryPage', {
+                             categoryName:post.category ,
                            })
-                         }> */}
+                         }>
                          <Image
                            source={{uri: post.postUrl}}
-                           width={120}
-                           height={120}
+                           width={180}
+                           height={180}
                          />
-                       {/* </TouchableOpacity> */}
-                       <Text style={{color: 'black'}}>{post.category}</Text>
+                       </TouchableOpacity>
+                       <ArtFeastText style={{color: 'black',textAlign:'center',fontSize:17}} text={post.category}/>
                      </View>
             ))
 
