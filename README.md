@@ -21,8 +21,7 @@ ArtFeast is a platform that bridges the gap between artists and art enthusiasts.
 ## Installation 
 ### Clone the repository:
 ```bash
-git clone https://github.com//artfeast-frontend.git
-cd artfeast-frontend
+git clone https://github.com/aastha1202/Artfeast-Frontend.git
 ```
 ### Install dependencies:
 ```bash
