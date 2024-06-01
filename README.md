@@ -12,9 +12,29 @@ ArtFeast is a platform that bridges the gap between artists and art enthusiasts.
 * Payment Processing: Seamless transactions through the Razor payment gateway.
 
 ## Technologies Used
-*Frontend: React Native
-*Backend: Node.js, MongoDB
-*Image Management: Cloudinary
-*Payment Gateway: Razorpay
-*AR: ViroReact 
+* Frontend: React Native
+* Backend: Node.js, MongoDB
+* Image Management: Cloudinary
+* Payment Gateway: Razorpay
+* AR: ViroReact 
+
+## Installation 
+### Clone the repository:
+```bash
+git clone https://github.com//artfeast-frontend.git
+cd artfeast-frontend
+```
+### Install dependencies:
+```bash
+npm install
+```
+### Start the development server:
+```bash
+npx react-native run-android
+```
+Follow the backend repository's instructions to set up the server and connect the frontend to the backend.
+### Running on a Physical Device
+ArtFeast runs on physical devices only. Follow the React Native documentation to run the app on an Android device.
+
+## Demo Video
 
